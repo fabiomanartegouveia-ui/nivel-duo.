@@ -16,15 +16,15 @@ body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}.wrap{max-wi
 <div class="wrap">
  <div class="brand"><div class="logo"><span class="mark">↕</span> Nível Duo</div><span class="tag">PROTÓTIPO</span></div>
  <section id="home" class="screen active">
-  <h1>Dois telemóveis.<br>Uma referência.</h1>
-  <p class="intro">Usa um Android como alvo fixo e o segundo para apontar com a câmara e estimar a diferença de altura. Os dois comunicam por um link.</p>
-  <div class="card"><h2>📱 Telemóvel A · Alvo</h2><p>Fica parado no ponto de referência e mostra uma mira grande ao outro telemóvel.</p><button class="btn" id="startHost">Criar ponto de referência</button></div>
-  <div class="card"><h2>📷 Telemóvel B · Medidor</h2><p>Abre o link enviado pelo telemóvel A, aponta com a câmara e lê a diferença de altura estimada.</p><p class="small">O telemóvel B entra automaticamente quando recebe o link.</p></div>
+  <h1>Um marca o ponto.<br>O outro mede.</h1>
+  <p class="intro">1️⃣ Marca o ponto neste telemóvel. 2️⃣ Partilha o link com o outro. 3️⃣ O outro abre a câmara e mostra logo uma diferença de altura <strong>estimada</strong>.</p>
+  <div class="card"><h2>📍 Telemóvel 1 · Referência</h2><p>Fica parado no ponto de referência e mostra uma mira grande ao outro telemóvel.</p><button class="btn" id="startHost">📍 MARCAR PONTO</button></div>
+  <div class="card"><h2>📏 Telemóvel 2 · Medição</h2><p>Abre o link que o primeiro enviou. A aplicação tenta ligar a câmara e começa a calcular a diferença aproximada. Se for pedido, autoriza a câmara.</p></div>
   <div class="card warning">⚠️ <b>Não é um nível laser.</b> Isto usa inclinação e distância introduzida manualmente. Os resultados são estimativas e <b>não garantem 5 cm de precisão</b>. Não uses para cotas de execução, betonilhas, fundações ou outros trabalhos críticos.</div>
  </section>
  <section id="host" class="screen">
   <div class="status"><span id="hostDot" class="dot"></span><span id="hostStatus">A ligar...</span></div>
-  <h1 style="margin-top:8px">Ponto de referência</h1><p>Coloca o ecrã voltado para o telemóvel B. A mira central deve coincidir com a altura que queres transferir.</p>
+  <h1 style="margin-top:8px">📍 Ponto marcado</h1><p>Coloca o ecrã voltado para o telemóvel B. A mira central deve coincidir com a altura que queres transferir.</p>
   <div class="target-wrap"><div class="target" role="img" aria-label="Mira vermelha de referência"><div class="rings"></div><div class="inner"></div></div></div>
   <div class="card"><div class="caps">Link para o telemóvel B</div><textarea id="shareLink" class="urlfield" readonly placeholder="A criar link..."></textarea><div class="btn-row" style="margin-top:9px"><button class="btn" id="copyLink" disabled>Copiar link</button><button class="btn secondary" id="shareButton" disabled>Partilhar</button></div><p class="small">Abre este link no outro Android. Mantém este ecrã aberto.</p></div>
   <div class="card"><div class="caps">Leitura recebida do telemóvel B</div><div id="hostValue" class="metric pending">—</div><div id="hostMeaning" class="metric-label">À espera do medidor</div><div class="kpis"><div><strong id="hostDistance">—</strong><span>Distância</span></div><div><strong id="hostAngle">—</strong><span>Ângulo corrigido</span></div></div></div>
@@ -34,16 +34,17 @@ body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}.wrap{max-wi
  </section>
  <section id="measure" class="screen">
   <div class="status"><span id="measureDot" class="dot"></span><span id="measureStatus">A ligar ao alvo...</span></div>
-  <h1 style="margin-top:7px">Medir altura</h1><p>Aponta a câmara traseira à mira do telemóvel A. Ajusta a distância horizontal medida com fita métrica.</p>
+  <h1 style="margin-top:7px">📏 Diferença de altura</h1><p>Aponta a cruz azul ao centro vermelho do primeiro telemóvel. A leitura aparece automaticamente quando os sensores e a câmara estiverem ativos.</p>
+  <div class="card"><div class="caps">Diferença de altura ESTIMADA · B em relação a A</div><div id="measureValue" class="metric pending">—</div><div id="measureMeaning" class="metric-label">Ativa os sensores e calibra</div><div class="kpis"><div><strong id="measureDistance">10 m</strong><span>Distância</span></div><div><strong id="measureAngle">—</strong><span>Ângulo corrigido</span></div><div><strong id="measureNoise">—</strong><span>Oscilação*</span></div></div><p class="foot">* Oscilação é a variação momentânea da leitura, <b>não</b> a precisão real. Verde significa apenas que a estimativa está dentro de ±5 cm.</p></div>
   <div class="camera" id="camFrame"><video id="camVideo" autoplay muted playsinline></video><div class="cam-placeholder" id="camPlaceholder">Ativa a câmara para ver a mira do telemóvel A</div><div class="crosshair"></div><div class="camera-info"><span id="sensorState">Sensor parado</span><span id="cameraAngle">—°</span></div></div>
-  <div class="btn-row" style="margin-top:11px"><button id="startSensors" class="btn">📷 Ativar câmara e sensores</button><button id="freeze" class="btn secondary" disabled>Fixar leitura</button></div>
+  <div class="btn-row" style="margin-top:11px"><button id="startSensors" class="btn">📷 Ligar câmara</button><button id="freeze" class="btn secondary" disabled>Fixar leitura</button></div>
+  <p class="small" id="cameraHelp" role="status">A pedir autorização para a câmara. Se não abrir, toca em «Ligar câmara» e permite o acesso no Chrome.</p>
   <div class="card">
    <div class="two"><div><label for="distance">Distância horizontal (metros)</label><input type="number" id="distance" min="0.2" max="300" step="0.1" value="10" inputmode="decimal"></div><div><label for="zoom">Zoom da imagem · <span id="zoomText">1×</span></label><input type="range" id="zoom" min="1" max="5" step="0.5" value="1" style="margin-top:14px"></div></div>
    <div class="divider"></div>
-   <button class="btn outline" id="calibrate" disabled style="width:100%">Calibrar 0° (mesma altura conhecida)</button>
-   <p class="small" id="calibrationInfo">Para calibrar: posiciona primeiro a câmara B e o centro da mira A a uma altura comprovadamente igual, alinha a mira no centro e carrega no botão.</p>
+   <details><summary style="font-weight:800;color:var(--mint)">⚙️ Corrigir zero (opcional)</summary><p class="small">Para reduzir o erro, coloca a lente e a mira à mesma altura comprovada, aponta a cruz ao centro vermelho e calibra.</p><button class="btn outline" id="calibrate" disabled style="width:100%">Calibrar zero</button><p class="small" id="calibrationInfo">Sem correção manual: cálculo imediato com o sensor do telemóvel.</p></details><p class="small">⚠️ Os 10 metros são apenas o valor inicial. Mede e coloca a distância horizontal verdadeira para ter uma estimativa em centímetros.</p>
   </div>
-  <div class="card"><div class="caps">Diferença de altura aproximada · B em relação a A</div><div id="measureValue" class="metric pending">—</div><div id="measureMeaning" class="metric-label">Ativa os sensores e calibra</div><div class="kpis"><div><strong id="measureDistance">10 m</strong><span>Distância</span></div><div><strong id="measureAngle">—</strong><span>Ângulo corrigido</span></div><div><strong id="measureNoise">—</strong><span>Oscilação*</span></div></div><p class="foot">* Oscilação é a variação momentânea da leitura, <b>não</b> a precisão real. Verde significa apenas que a estimativa está dentro de ±5 cm.</p></div>
+
   <div class="card"><h2>🔔 Apito de aproximação</h2><button class="btn secondary" id="measureBeepButton" type="button">🔊 Ativar apito</button><p class="small" id="measureBeepStatus" aria-live="polite">Apito desligado. Quanto mais perto da referência estimada, mais rápido apita.</p><label for="measureBeepVolume">Volume do apito</label><input type="range" id="measureBeepVolume" min="0" max="100" step="5" value="55" aria-label="Volume do apito"><p class="foot">Funciona apenas com uma leitura calibrada e ativa. O som não garante precisão de 5 cm.</p></div>
   <div class="card warning">⚠️ <b>Teste experimental.</b> Erros de alinhamento, calibração, distância e sensores podem ultrapassar 5 cm, especialmente a 10–20 metros. Confirma sempre com um nível físico antes de trabalhar o terreno.</div>
   <div class="card"><h2>Como utilizar</h2><ol class="steps"><li>O A fica imóvel com a mira ao nível de referência.</li><li>No B, ativa câmara e sensores e introduz a distância horizontal A↔B.</li><li><b>Calibração obrigatória:</b> coloca a lente de B à mesma cota do centro da mira A, confirma essa igualdade com um método externo, aponta ao alvo e toca em “Calibrar 0°”.</li><li>Move B até ao ponto a medir, coloca a lente sempre à mesma distância vertical acima do ponto de chão e aponta novamente à mira de A.</li><li>O valor positivo indica que a lente B está acima do centro da mira A. Se quiseres comparar os pontos no chão, as alturas do centro da mira A e da lente B relativamente aos respetivos pontos devem ser iguais.</li></ol></div>
@@ -55,7 +56,7 @@ body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}.wrap{max-wi
 <script>
 'use strict';
 const $=s=>document.getElementById(s);
-const state={peer:null,conn:null,role:'',stream:null,theta:null,samples:[],zero:null,frozen:false,wake:null,lastSend:0};
+const state={peer:null,conn:null,role:'',stream:null,theta:null,samples:[],zero:0,frozen:false,wake:null,lastSend:0};
 const DEG=Math.PI/180;
 
 const audioFeedback={enabled:false,context:null,deltaCm:null,updated:0,lastBeep:0};
@@ -119,7 +120,7 @@ document.addEventListener('visibilitychange',()=>{
 function toast(s){const e=$('toast');e.textContent=s;e.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('show'),3600)}
 function show(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));window.scrollTo({top:0,behavior:'instant'})}
 function status(where,txt,mode){$(where+'Status').textContent=txt;$(where+'Dot').className='dot'+(mode?' '+mode:'')}
-function setMetric(prefix,delta,calibrated){const v=$(prefix+'Value'),m=$(prefix+'Meaning');setAudioReading(calibrated?delta:null);v.className='metric';if(!calibrated||!Number.isFinite(delta)){v.textContent='—';v.classList.add('pending');m.textContent=prefix==='host'?'À espera da leitura calibrada':'Ativa os sensores e calibra';return}
+function setMetric(prefix,delta,calibrated){const v=$(prefix+'Value'),m=$(prefix+'Meaning');setAudioReading(calibrated?delta:null);v.className='metric';if(!calibrated||!Number.isFinite(delta)){v.textContent='—';v.classList.add('pending');m.textContent=prefix==='host'?'À espera da leitura':'Ativa a câmara e os sensores';return}
  const magnitude=Math.abs(delta);v.textContent=(delta>0?'+':delta<0?'−':'')+magnitude.toFixed(1)+' cm';
  const near=magnitude<=5;v.classList.add(near?'good':'bad');m.textContent=near?'🟢 Estimativa dentro de ±5 cm':delta>0?'🔴 B está acima de A (estimativa)':'🔴 B está abaixo de A (estimativa)';}
 function send(data){if(state.conn&&state.conn.open){try{state.conn.send(data)}catch(e){console.warn(e)}}}
@@ -154,7 +155,7 @@ $('startSensors').addEventListener('click',async()=>{let failures=[];
  else{try{if(typeof DeviceOrientationEvent.requestPermission==='function'){const p=await DeviceOrientationEvent.requestPermission();if(p!=='granted')throw Error('permissão negada')}
   window.removeEventListener('deviceorientation',onOrientation);window.addEventListener('deviceorientation',onOrientation,true);$('sensorState').textContent='À espera do sensor...';
  }catch(e){failures.push('sensor: '+e.message)}}
- $('startSensors').textContent='Reiniciar sensores';if(failures.length)toast('Falhou: '+failures.join('; '));else toast('A apontar! Verifica se o ângulo muda ao inclinar o telemóvel.');
+ $('startSensors').textContent='🔄 Voltar a ligar câmara';if(failures.length){$('cameraHelp').textContent='❌ '+failures.join('; ')+'. Se a câmara estiver bloqueada, abre o site no Chrome e autoriza-a nas permissões do site.';toast('Confere a mensagem debaixo da câmara.')}else{$('cameraHelp').textContent='✅ Câmara/sensores iniciados. Aponta ao ponto vermelho e corrige a distância.';toast('A apontar! Alinha a cruz com o ponto vermelho.');}
 });
 function onOrientation(e){if(!Number.isFinite(e.beta)||!Number.isFinite(e.gamma))return;
  // Optical axis of the rear camera (-Z device axis), its elevation after Rz(alpha) Rx(beta) Ry(gamma).
@@ -171,7 +172,7 @@ $('freeze').addEventListener('click',()=>{state.frozen=!state.frozen;$('freeze')
 let lastResult=null;
 function updateReadout(){let d=Number($('distance').value.replace?$('distance').value.replace(',','.'):$('distance').value);
  if(!(d>0&&d<300))d=NaN;$('measureDistance').textContent=Number.isFinite(d)?d.toFixed(1)+' m':'—';
- if(state.frozen)return;if(state.theta===null||state.zero===null||!Number.isFinite(d)){
+ if(state.frozen)return;if(!state.stream||state.theta===null||!Number.isFinite(d)){
   setMetric('measure',null,false);lastResult=null;send({type:'reading',calibrated:false});$('measureAngle').textContent='—';$('measureNoise').textContent='—';return;
  }
  const angle=state.theta-state.zero;const heightCm=-100*d*Math.tan(angle*DEG);
@@ -184,7 +185,7 @@ function updateReadout(){let d=Number($('distance').value.replace?$('distance').
 function sendHeartbeat(){if(state.role==='measure'&&state.conn&&state.conn.open){if(lastResult)send(lastResult);else send({type:'reading',calibrated:false})}}
 setInterval(sendHeartbeat,3000);
 window.addEventListener('pagehide',()=>{if(state.stream)state.stream.getTracks().forEach(t=>t.stop());if(state.peer)state.peer.destroy()});
-if(new URLSearchParams(location.search).has('s'))initPeer('measure');
+if(new URLSearchParams(location.search).has('s')){initPeer('measure');setTimeout(()=>{if(!state.stream)$('startSensors').click()},350)}
 </script>
 </body>
 </html>
