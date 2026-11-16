@@ -28,6 +28,7 @@ body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}.wrap{max-wi
   <div class="target-wrap"><div class="target" role="img" aria-label="Mira vermelha de referência"><div class="rings"></div><div class="inner"></div></div></div>
   <div class="card"><div class="caps">Link para o telemóvel B</div><textarea id="shareLink" class="urlfield" readonly placeholder="A criar link..."></textarea><div class="btn-row" style="margin-top:9px"><button class="btn" id="copyLink" disabled>Copiar link</button><button class="btn secondary" id="shareButton" disabled>Partilhar</button></div><p class="small">Abre este link no outro Android. Mantém este ecrã aberto.</p></div>
   <div class="card"><div class="caps">Leitura recebida do telemóvel B</div><div id="hostValue" class="metric pending">—</div><div id="hostMeaning" class="metric-label">À espera do medidor</div><div class="kpis"><div><strong id="hostDistance">—</strong><span>Distância</span></div><div><strong id="hostAngle">—</strong><span>Ângulo corrigido</span></div></div></div>
+  <div class="card"><h2>🔔 Apito de aproximação</h2><button class="btn secondary" id="hostBeepButton" type="button">🔊 Ativar apito</button><p class="small" id="hostBeepStatus" aria-live="polite">Apito desligado. Quanto mais perto da referência estimada, mais rápido apita.</p><label for="hostBeepVolume">Volume do apito</label><input type="range" id="hostBeepVolume" min="0" max="100" step="5" value="55" aria-label="Volume do apito"><p class="foot">Funciona apenas com uma leitura calibrada e ativa. O som não garante precisão de 5 cm.</p></div>
   <button id="hostWake" class="btn secondary" style="width:100%">Manter ecrã ativo (se disponível)</button>
   <p class="foot">Conexão entre navegadores através de WebRTC/PeerJS. Mantém ligação à Internet nos dois telemóveis.</p>
  </section>
@@ -43,6 +44,7 @@ body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}.wrap{max-wi
    <p class="small" id="calibrationInfo">Para calibrar: posiciona primeiro a câmara B e o centro da mira A a uma altura comprovadamente igual, alinha a mira no centro e carrega no botão.</p>
   </div>
   <div class="card"><div class="caps">Diferença de altura aproximada · B em relação a A</div><div id="measureValue" class="metric pending">—</div><div id="measureMeaning" class="metric-label">Ativa os sensores e calibra</div><div class="kpis"><div><strong id="measureDistance">10 m</strong><span>Distância</span></div><div><strong id="measureAngle">—</strong><span>Ângulo corrigido</span></div><div><strong id="measureNoise">—</strong><span>Oscilação*</span></div></div><p class="foot">* Oscilação é a variação momentânea da leitura, <b>não</b> a precisão real. Verde significa apenas que a estimativa está dentro de ±5 cm.</p></div>
+  <div class="card"><h2>🔔 Apito de aproximação</h2><button class="btn secondary" id="measureBeepButton" type="button">🔊 Ativar apito</button><p class="small" id="measureBeepStatus" aria-live="polite">Apito desligado. Quanto mais perto da referência estimada, mais rápido apita.</p><label for="measureBeepVolume">Volume do apito</label><input type="range" id="measureBeepVolume" min="0" max="100" step="5" value="55" aria-label="Volume do apito"><p class="foot">Funciona apenas com uma leitura calibrada e ativa. O som não garante precisão de 5 cm.</p></div>
   <div class="card warning">⚠️ <b>Teste experimental.</b> Erros de alinhamento, calibração, distância e sensores podem ultrapassar 5 cm, especialmente a 10–20 metros. Confirma sempre com um nível físico antes de trabalhar o terreno.</div>
   <div class="card"><h2>Como utilizar</h2><ol class="steps"><li>O A fica imóvel com a mira ao nível de referência.</li><li>No B, ativa câmara e sensores e introduz a distância horizontal A↔B.</li><li><b>Calibração obrigatória:</b> coloca a lente de B à mesma cota do centro da mira A, confirma essa igualdade com um método externo, aponta ao alvo e toca em “Calibrar 0°”.</li><li>Move B até ao ponto a medir, coloca a lente sempre à mesma distância vertical acima do ponto de chão e aponta novamente à mira de A.</li><li>O valor positivo indica que a lente B está acima do centro da mira A. Se quiseres comparar os pontos no chão, as alturas do centro da mira A e da lente B relativamente aos respetivos pontos devem ser iguais.</li></ol></div>
  </section>
@@ -55,10 +57,69 @@ body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}.wrap{max-wi
 const $=s=>document.getElementById(s);
 const state={peer:null,conn:null,role:'',stream:null,theta:null,samples:[],zero:null,frozen:false,wake:null,lastSend:0};
 const DEG=Math.PI/180;
+
+const audioFeedback={enabled:false,context:null,deltaCm:null,updated:0,lastBeep:0};
+function setAudioReading(delta){
+ audioFeedback.deltaCm=Number.isFinite(delta)?delta:null;
+ audioFeedback.updated=performance.now();
+}
+async function toggleAudioFeedback(role){
+ if(state.role!==role)return;
+ const btn=$(role+'BeepButton'),info=$(role+'BeepStatus');
+ if(audioFeedback.enabled){
+  audioFeedback.enabled=false;audioFeedback.deltaCm=null;
+  btn.textContent='🔊 Ativar apito';
+  info.textContent='Apito desligado. Toca no botão para o ativar.';
+  if(audioFeedback.context&&audioFeedback.context.state==='running')await audioFeedback.context.suspend();
+  return;
+ }
+ const AudioCtor=window.AudioContext||window.webkitAudioContext;
+ if(!AudioCtor){toast('Este navegador não suporta apitos de áudio.');return}
+ try{
+  if(!audioFeedback.context)audioFeedback.context=new AudioCtor();
+  await audioFeedback.context.resume();
+  if(audioFeedback.context.state!=='running')throw Error('Áudio bloqueado');
+  audioFeedback.enabled=true;audioFeedback.lastBeep=0;
+  btn.textContent='🔇 Desligar apito';
+  info.textContent='Apito ligado: mais rápido perto de 0 cm. Sem calibração, fica silencioso.';
+  toast('Apito ativado! Ajusta o volume do telemóvel.');
+ }catch(e){toast('Não foi possível ativar o som. Tenta abrir no Chrome.')}
+}
+$('hostBeepButton').addEventListener('click',()=>toggleAudioFeedback('host'));
+$('measureBeepButton').addEventListener('click',()=>toggleAudioFeedback('measure'));
+function beepTick(){
+ const a=audioFeedback,ctx=a.context;
+ if(!a.enabled||!ctx||ctx.state!=='running'||document.hidden||state.frozen)return;
+ if(!Number.isFinite(a.deltaCm)||performance.now()-a.updated>5000)return;
+ const distance=Math.abs(a.deltaCm);
+ if(distance>100)return;
+ // Longe: apitos espaçados. Muito perto (até 2 cm estimados): apitos rápidos.
+ const interval=distance<=2?170:230+2200*Math.pow(distance/100,0.85);
+ const now=performance.now();
+ if(now-a.lastBeep<interval)return;
+ a.lastBeep=now;
+ const vol=Number($(state.role+'BeepVolume')?.value||0)/100;
+ if(vol<=0)return;
+ try{
+  const t=ctx.currentTime,osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.type='sine';osc.frequency.setValueAtTime(distance<=5?1140:870,t);
+  gain.gain.setValueAtTime(0.0001,t);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001,0.17*vol),t+0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001,t+0.085);
+  osc.connect(gain);gain.connect(ctx.destination);
+  osc.start(t);osc.stop(t+0.09);
+ }catch(e){console.warn('Áudio indisponível',e)}
+}
+setInterval(beepTick,85);
+document.addEventListener('visibilitychange',()=>{
+ const ctx=audioFeedback.context;if(!ctx)return;
+ if(document.hidden&&ctx.state==='running')ctx.suspend().catch(()=>{});
+ else if(!document.hidden&&audioFeedback.enabled&&ctx.state==='suspended')ctx.resume().catch(()=>{});
+});
 function toast(s){const e=$('toast');e.textContent=s;e.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('show'),3600)}
 function show(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));window.scrollTo({top:0,behavior:'instant'})}
 function status(where,txt,mode){$(where+'Status').textContent=txt;$(where+'Dot').className='dot'+(mode?' '+mode:'')}
-function setMetric(prefix,delta,calibrated){const v=$(prefix+'Value'),m=$(prefix+'Meaning');v.className='metric';if(!calibrated||!Number.isFinite(delta)){v.textContent='—';v.classList.add('pending');m.textContent=prefix==='host'?'À espera da leitura calibrada':'Ativa os sensores e calibra';return}
+function setMetric(prefix,delta,calibrated){const v=$(prefix+'Value'),m=$(prefix+'Meaning');setAudioReading(calibrated?delta:null);v.className='metric';if(!calibrated||!Number.isFinite(delta)){v.textContent='—';v.classList.add('pending');m.textContent=prefix==='host'?'À espera da leitura calibrada':'Ativa os sensores e calibra';return}
  const magnitude=Math.abs(delta);v.textContent=(delta>0?'+':delta<0?'−':'')+magnitude.toFixed(1)+' cm';
  const near=magnitude<=5;v.classList.add(near?'good':'bad');m.textContent=near?'🟢 Estimativa dentro de ±5 cm':delta>0?'🔴 B está acima de A (estimativa)':'🔴 B está abaixo de A (estimativa)';}
 function send(data){if(state.conn&&state.conn.open){try{state.conn.send(data)}catch(e){console.warn(e)}}}
@@ -106,12 +167,12 @@ $('calibrate').addEventListener('click',()=>{if(state.samples.length<10){toast('
  $('calibrationInfo').textContent='Zero calibrado: '+mean.toFixed(2)+'°. Calibração válida apenas para esta posição/câmara e enquanto os sensores se mantiverem consistentes.';
  if(Math.sqrt(variance)>0.15)toast('Zero guardado, mas o telemóvel estava instável. Repete a calibração.')
  else toast('Zero calibrado. Agora podes mudar para o ponto a medir.');updateReadout();});
-$('freeze').addEventListener('click',()=>{state.frozen=!state.frozen;$('freeze').textContent=state.frozen?'Retomar leitura':'Fixar leitura';toast(state.frozen?'Leitura fixada':'Leitura em direto')});
+$('freeze').addEventListener('click',()=>{state.frozen=!state.frozen;$('freeze').textContent=state.frozen?'Retomar leitura':'Fixar leitura';if(state.frozen){setAudioReading(null);lastResult=null;send({type:'reading',calibrated:false})}else{updateReadout()}toast(state.frozen?'Leitura fixada · apito suspenso':'Leitura em direto')});
 let lastResult=null;
 function updateReadout(){let d=Number($('distance').value.replace?$('distance').value.replace(',','.'):$('distance').value);
  if(!(d>0&&d<300))d=NaN;$('measureDistance').textContent=Number.isFinite(d)?d.toFixed(1)+' m':'—';
  if(state.frozen)return;if(state.theta===null||state.zero===null||!Number.isFinite(d)){
-  setMetric('measure',null,false);$('measureAngle').textContent='—';$('measureNoise').textContent='—';return;
+  setMetric('measure',null,false);lastResult=null;send({type:'reading',calibrated:false});$('measureAngle').textContent='—';$('measureNoise').textContent='—';return;
  }
  const angle=state.theta-state.zero;const heightCm=-100*d*Math.tan(angle*DEG);
  const sample=state.samples;const mean=sample.reduce((a,b)=>a+b,0)/sample.length;
