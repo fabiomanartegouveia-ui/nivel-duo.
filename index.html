@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a1523">
+<meta name="description" content="Protótipo experimental: dois telemóveis para estimar a diferença de altura com câmara e inclinação, não substitui um nível laser.">
+<title>Nível Duo · Protótipo experimental</title>
+<style>
+:root{color-scheme:dark;--bg:#091322;--card:#101f32;--line:#283b4d;--text:#e9f4ff;--muted:#a6bfd1;--mint:#54e2b4;--gold:#ffc56b;--rose:#ff7e8d}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#17314a,var(--bg) 52%);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text)}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}.wrap{max-width:680px;margin:auto;padding:18px 18px 36px}.brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}.logo{display:flex;gap:10px;align-items:center;font-weight:800;letter-spacing:.2px;font-size:20px}.mark{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:var(--mint);color:#0b2030;font-weight:900}.tag{font-size:11px;border:1px solid var(--line);padding:7px 9px;border-radius:100px;color:var(--gold)}h1{font-size:clamp(29px,6vw,45px);line-height:1.07;letter-spacing:-1px;margin:22px 0 10px}h2{font-size:20px;margin:0 0 10px}p{line-height:1.45;color:var(--muted)}.intro{font-size:16px;margin-bottom:22px}.card{background:rgba(16,31,50,.95);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #0002}.warning{background:#362917;border-color:#71522b;font-size:14px;line-height:1.45;color:#ffe4ac}.warning b{color:#ffdb87}.btn{border:0;border-radius:12px;background:var(--mint);color:#092136;padding:14px 17px;font-weight:800;font-size:15px;cursor:pointer;min-height:48px;touch-action:manipulation}.btn.secondary{background:#1b344a;color:#dceefa;border:1px solid #3c5970}.btn.outline{background:transparent;color:var(--mint);border:1px solid var(--mint)}.btn:disabled{opacity:.48;cursor:not-allowed}.btn-row{display:flex;gap:9px;flex-wrap:wrap}.btn-row>*{flex:1 1 145px}.small{font-size:13px;color:var(--muted)}.caps{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700}.screen{display:none}.screen.active{display:block}.status{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:10px 0}.dot{height:9px;width:9px;border-radius:50%;background:var(--gold)}.dot.ok{background:var(--mint)}.dot.error{background:var(--rose)}.target-wrap{display:grid;place-items:center;padding:14px 0 7px}.target{position:relative;width:min(75vw,310px);height:min(75vw,310px);aspect-ratio:1;background:#fff;border:11px solid #131b26;border-radius:50%;box-shadow:0 0 0 3px var(--gold),0 0 0 7px #101f32,0 18px 60px #0008}.target:before,.target:after{content:'';position:absolute;background:#0e1825}.target:before{height:9px;left:0;right:0;top:calc(50% - 4.5px)}.target:after{width:9px;top:0;bottom:0;left:calc(50% - 4.5px)}.rings{position:absolute;inset:21%;border:8px solid #f24350;border-radius:50%;z-index:1}.inner{position:absolute;inset:38%;background:#f24350;border:3px solid #fff;border-radius:50%;z-index:2}.urlfield{width:100%;background:#081422;border:1px solid #3a5267;color:#cfe8f2;resize:none;min-height:86px;padding:13px;border-radius:10px;font-size:12px;overflow-wrap:anywhere}.metric{font-size:clamp(45px,13vw,78px);line-height:1.1;font-weight:900;letter-spacing:-3px;text-align:center;margin:4px 0 0;font-variant-numeric:tabular-nums}.metric-label{text-align:center;font-size:17px;font-weight:750}.metric.pending{color:var(--muted)}.metric.good{color:var(--mint)}.metric.bad{color:var(--rose)}.metric.unknown{color:var(--gold)}.kpis{display:flex;justify-content:space-around;gap:12px;border-top:1px solid var(--line);padding-top:15px;margin-top:15px}.kpis>div{text-align:center;min-width:0}.kpis strong{display:block;font-size:20px}.kpis span{display:block;font-size:12px;color:var(--muted)}label{display:block;color:var(--muted);font-size:13px;font-weight:650;margin-bottom:7px}input[type=number]{background:#081422;color:var(--text);border:1px solid #426079;border-radius:11px;font-size:19px;padding:12px;width:100%;min-height:50px}input[type=range]{width:100%;accent-color:var(--mint)}.camera{position:relative;overflow:hidden;background:#010711;min-height:270px;aspect-ratio:4/3;border-radius:16px;border:1px solid #365069}.camera video{position:absolute;width:100%;height:100%;object-fit:cover;transform:scale(var(--zoom,1));transform-origin:center}.crosshair{position:absolute;z-index:2;left:50%;top:50%;width:40px;height:40px;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:50%;filter:drop-shadow(0 1px 2px #000);pointer-events:none}.crosshair:before,.crosshair:after{content:'';position:absolute;background:var(--mint)}.crosshair:before{width:2px;height:90px;left:17px;top:-27px}.crosshair:after{height:2px;width:90px;top:17px;left:-27px}.camera-info{position:absolute;bottom:8px;left:8px;right:8px;z-index:2;display:flex;justify-content:space-between;font-weight:750;font-size:13px;text-shadow:0 1px 4px #000;background:#0007;padding:5px 9px;border-radius:7px}.cam-placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#9bb2c7;font-size:14px;padding:30px;text-align:center}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.steps{margin:12px 0 0;padding-left:22px;color:var(--muted);font-size:14px;line-height:1.6}.steps li+li{margin-top:6px}.hide{display:none!important}.divider{height:1px;background:var(--line);margin:17px 0}a{color:var(--mint)}.foot{font-size:12px;line-height:1.45;color:#88a4b8;padding:10px 3px}.note{border-left:3px solid var(--gold);padding:9px 12px;margin:13px 0;background:#2b271f;border-radius:5px;color:#fbe2ae;font-size:13px}.toast{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#294459;border:1px solid #6490a8;z-index:10;border-radius:12px;padding:10px 14px;max-width:95vw;min-width:220px;text-align:center;display:none}.toast.show{display:block}@media(max-width:370px){.two{grid-template-columns:1fr}.wrap{padding-left:12px;padding-right:12px}.metric{font-size:54px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="brand"><div class="logo"><span class="mark">↕</span> Nível Duo</div><span class="tag">PROTÓTIPO</span></div>
+ <section id="home" class="screen active">
+  <h1>Dois telemóveis.<br>Uma referência.</h1>
+  <p class="intro">Usa um Android como alvo fixo e o segundo para apontar com a câmara e estimar a diferença de altura. Os dois comunicam por um link.</p>
+  <div class="card"><h2>📱 Telemóvel A · Alvo</h2><p>Fica parado no ponto de referência e mostra uma mira grande ao outro telemóvel.</p><button class="btn" id="startHost">Criar ponto de referência</button></div>
+  <div class="card"><h2>📷 Telemóvel B · Medidor</h2><p>Abre o link enviado pelo telemóvel A, aponta com a câmara e lê a diferença de altura estimada.</p><p class="small">O telemóvel B entra automaticamente quando recebe o link.</p></div>
+  <div class="card warning">⚠️ <b>Não é um nível laser.</b> Isto usa inclinação e distância introduzida manualmente. Os resultados são estimativas e <b>não garantem 5 cm de precisão</b>. Não uses para cotas de execução, betonilhas, fundações ou outros trabalhos críticos.</div>
+ </section>
+ <section id="host" class="screen">
+  <div class="status"><span id="hostDot" class="dot"></span><span id="hostStatus">A ligar...</span></div>
+  <h1 style="margin-top:8px">Ponto de referência</h1><p>Coloca o ecrã voltado para o telemóvel B. A mira central deve coincidir com a altura que queres transferir.</p>
+  <div class="target-wrap"><div class="target" role="img" aria-label="Mira vermelha de referência"><div class="rings"></div><div class="inner"></div></div></div>
+  <div class="card"><div class="caps">Link para o telemóvel B</div><textarea id="shareLink" class="urlfield" readonly placeholder="A criar link..."></textarea><div class="btn-row" style="margin-top:9px"><button class="btn" id="copyLink" disabled>Copiar link</button><button class="btn secondary" id="shareButton" disabled>Partilhar</button></div><p class="small">Abre este link no outro Android. Mantém este ecrã aberto.</p></div>
+  <div class="card"><div class="caps">Leitura recebida do telemóvel B</div><div id="hostValue" class="metric pending">—</div><div id="hostMeaning" class="metric-label">À espera do medidor</div><div class="kpis"><div><strong id="hostDistance">—</strong><span>Distância</span></div><div><strong id="hostAngle">—</strong><span>Ângulo corrigido</span></div></div></div>
+  <button id="hostWake" class="btn secondary" style="width:100%">Manter ecrã ativo (se disponível)</button>
+  <p class="foot">Conexão entre navegadores através de WebRTC/PeerJS. Mantém ligação à Internet nos dois telemóveis.</p>
+ </section>
+ <section id="measure" class="screen">
+  <div class="status"><span id="measureDot" class="dot"></span><span id="measureStatus">A ligar ao alvo...</span></div>
+  <h1 style="margin-top:7px">Medir altura</h1><p>Aponta a câmara traseira à mira do telemóvel A. Ajusta a distância horizontal medida com fita métrica.</p>
+  <div class="camera" id="camFrame"><video id="camVideo" autoplay muted playsinline></video><div class="cam-placeholder" id="camPlaceholder">Ativa a câmara para ver a mira do telemóvel A</div><div class="crosshair"></div><div class="camera-info"><span id="sensorState">Sensor parado</span><span id="cameraAngle">—°</span></div></div>
+  <div class="btn-row" style="margin-top:11px"><button id="startSensors" class="btn">📷 Ativar câmara e sensores</button><button id="freeze" class="btn secondary" disabled>Fixar leitura</button></div>
+  <div class="card">
+   <div class="two"><div><label for="distance">Distância horizontal (metros)</label><input type="number" id="distance" min="0.2" max="300" step="0.1" value="10" inputmode="decimal"></div><div><label for="zoom">Zoom da imagem · <span id="zoomText">1×</span></label><input type="range" id="zoom" min="1" max="5" step="0.5" value="1" style="margin-top:14px"></div></div>
+   <div class="divider"></div>
+   <button class="btn outline" id="calibrate" disabled style="width:100%">Calibrar 0° (mesma altura conhecida)</button>
+   <p class="small" id="calibrationInfo">Para calibrar: posiciona primeiro a câmara B e o centro da mira A a uma altura comprovadamente igual, alinha a mira no centro e carrega no botão.</p>
+  </div>
+  <div class="card"><div class="caps">Diferença de altura aproximada · B em relação a A</div><div id="measureValue" class="metric pending">—</div><div id="measureMeaning" class="metric-label">Ativa os sensores e calibra</div><div class="kpis"><div><strong id="measureDistance">10 m</strong><span>Distância</span></div><div><strong id="measureAngle">—</strong><span>Ângulo corrigido</span></div><div><strong id="measureNoise">—</strong><span>Oscilação*</span></div></div><p class="foot">* Oscilação é a variação momentânea da leitura, <b>não</b> a precisão real. Verde significa apenas que a estimativa está dentro de ±5 cm.</p></div>
+  <div class="card warning">⚠️ <b>Teste experimental.</b> Erros de alinhamento, calibração, distância e sensores podem ultrapassar 5 cm, especialmente a 10–20 metros. Confirma sempre com um nível físico antes de trabalhar o terreno.</div>
+  <div class="card"><h2>Como utilizar</h2><ol class="steps"><li>O A fica imóvel com a mira ao nível de referência.</li><li>No B, ativa câmara e sensores e introduz a distância horizontal A↔B.</li><li><b>Calibração obrigatória:</b> coloca a lente de B à mesma cota do centro da mira A, confirma essa igualdade com um método externo, aponta ao alvo e toca em “Calibrar 0°”.</li><li>Move B até ao ponto a medir, coloca a lente sempre à mesma distância vertical acima do ponto de chão e aponta novamente à mira de A.</li><li>O valor positivo indica que a lente B está acima do centro da mira A. Se quiseres comparar os pontos no chão, as alturas do centro da mira A e da lente B relativamente aos respetivos pontos devem ser iguais.</li></ol></div>
+ </section>
+ <p class="foot">Nível Duo — demonstração técnica, não instrumento de topografia. Android Chrome recomendado; requer HTTPS para câmara e sensores.</p>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script>
+'use strict';
+const $=s=>document.getElementById(s);
+const state={peer:null,conn:null,role:'',stream:null,theta:null,samples:[],zero:null,frozen:false,wake:null,lastSend:0};
+const DEG=Math.PI/180;
+function toast(s){const e=$('toast');e.textContent=s;e.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('show'),3600)}
+function show(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));window.scrollTo({top:0,behavior:'instant'})}
+function status(where,txt,mode){$(where+'Status').textContent=txt;$(where+'Dot').className='dot'+(mode?' '+mode:'')}
+function setMetric(prefix,delta,calibrated){const v=$(prefix+'Value'),m=$(prefix+'Meaning');v.className='metric';if(!calibrated||!Number.isFinite(delta)){v.textContent='—';v.classList.add('pending');m.textContent=prefix==='host'?'À espera da leitura calibrada':'Ativa os sensores e calibra';return}
+ const magnitude=Math.abs(delta);v.textContent=(delta>0?'+':delta<0?'−':'')+magnitude.toFixed(1)+' cm';
+ const near=magnitude<=5;v.classList.add(near?'good':'bad');m.textContent=near?'🟢 Estimativa dentro de ±5 cm':delta>0?'🔴 B está acima de A (estimativa)':'🔴 B está abaixo de A (estimativa)';}
+function send(data){if(state.conn&&state.conn.open){try{state.conn.send(data)}catch(e){console.warn(e)}}}
+function initPeer(role){if(typeof Peer==='undefined'){toast('Falha a carregar PeerJS: verifica a Internet.');return}state.role=role;const peer=new Peer();state.peer=peer;
+ peer.on('error',e=>{console.error('Ligação:',e);status(role==='host'?'host':'measure','Erro de ligação: '+(e.type||'rede'),'error')});
+ peer.on('disconnected',()=>{status(role==='host'?'host':'measure','Ligação ao servidor perdida','error')});
+ if(role==='host'){
+  show('host');status('host','A criar link...');peer.on('open',id=>{const url=new URL(location.href);url.search='?s='+encodeURIComponent(id);url.hash='';$('shareLink').value=url.href;$('copyLink').disabled=false;$('shareButton').disabled=false;status('host','Alvo pronto · à espera do telemóvel B')});
+  peer.on('connection',conn=>{if(state.conn&&state.conn.open)state.conn.close();bindConn(conn,'host')});
+ }else{
+  show('measure');const room=new URLSearchParams(location.search).get('s');if(!room){status('measure','Falta o código do alvo','error');return}
+  peer.on('open',()=>{status('measure','A contactar o telemóvel A...');bindConn(peer.connect(room,{reliable:true}),'measure')});
+ }
+}
+function bindConn(conn,role){state.conn=conn;
+ conn.on('open',()=>{status(role,role==='host'?'🟢 Medidor B ligado':'🟢 Alvo A ligado','ok');if(role==='measure')send({type:'hello'});});
+ conn.on('data',data=>{if(!data||typeof data!=='object')return;if(role==='host'&&data.type==='reading'){
+  setMetric('host',data.deltaCm,data.calibrated);$('hostDistance').textContent=data.distance?data.distance.toFixed(1)+' m':'—';$('hostAngle').textContent=Number.isFinite(data.angle)?data.angle.toFixed(2)+'°':'—';
+ }});
+ conn.on('close',()=>status(role,role==='host'?'Medidor B desligado':'Alvo A desligado','error'));
+ conn.on('error',()=>status(role,'Erro na ligação entre telemóveis','error'));
+}
+$('startHost').addEventListener('click',()=>initPeer('host'));
+$('copyLink').addEventListener('click',async()=>{let u=$('shareLink').value;try{await navigator.clipboard.writeText(u);toast('Link copiado!')}catch(e){$('shareLink').focus();$('shareLink').select();toast('Seleciona e copia o link manualmente.')}});
+$('shareButton').addEventListener('click',async()=>{const url=$('shareLink').value;if(navigator.share){try{await navigator.share({title:'Nível Duo – Telemóvel B',text:'Abre o link para medir altura',url})}catch(e){if(e.name!=='AbortError')toast('Não foi possível partilhar')}}else{$('copyLink').click()}});
+$('hostWake').addEventListener('click',async()=>{try{if(!('wakeLock'in navigator))throw Error('não suportado');state.wake=await navigator.wakeLock.request('screen');toast('Ecrã mantido ativo enquanto for permitido')}catch(e){toast('Mantém o ecrã ativo manualmente nas definições do Android')}});
+$('zoom').addEventListener('input',e=>{$('camFrame').style.setProperty('--zoom',e.target.value);$('zoomText').textContent=e.target.value+'×'});
+$('distance').addEventListener('input',()=>{state.frozen=false;$('freeze').textContent='Fixar leitura';updateReadout()});
+$('startSensors').addEventListener('click',async()=>{let failures=[];
+ if(!state.stream){try{const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});state.stream=stream;$('camVideo').srcObject=stream;$('camPlaceholder').classList.add('hide');await $('camVideo').play()}catch(e){failures.push('câmara: '+e.message)}}
+ if(typeof DeviceOrientationEvent==='undefined')failures.push('sensor de orientação não disponível');
+ else{try{if(typeof DeviceOrientationEvent.requestPermission==='function'){const p=await DeviceOrientationEvent.requestPermission();if(p!=='granted')throw Error('permissão negada')}
+  window.removeEventListener('deviceorientation',onOrientation);window.addEventListener('deviceorientation',onOrientation,true);$('sensorState').textContent='À espera do sensor...';
+ }catch(e){failures.push('sensor: '+e.message)}}
+ $('startSensors').textContent='Reiniciar sensores';if(failures.length)toast('Falhou: '+failures.join('; '));else toast('A apontar! Verifica se o ângulo muda ao inclinar o telemóvel.');
+});
+function onOrientation(e){if(!Number.isFinite(e.beta)||!Number.isFinite(e.gamma))return;
+ // Optical axis of the rear camera (-Z device axis), its elevation after Rz(alpha) Rx(beta) Ry(gamma).
+ const up=-Math.cos(e.beta*DEG)*Math.cos(e.gamma*DEG);const theta=Math.asin(Math.min(1,Math.max(-1,up)))/DEG;
+ state.samples.push(theta);if(state.samples.length>42)state.samples.shift();state.theta=state.samples.reduce((a,b)=>a+b,0)/state.samples.length;
+ $('sensorState').textContent='Sensor ativo';$('cameraAngle').textContent=state.theta.toFixed(2)+'°';$('calibrate').disabled=state.samples.length<10;$('freeze').disabled=state.zero===null;updateReadout();}
+$('calibrate').addEventListener('click',()=>{if(state.samples.length<10){toast('Faltam leituras do sensor');return}
+ const s=state.samples;const mean=s.reduce((a,b)=>a+b,0)/s.length;const variance=s.reduce((a,b)=>a+(b-mean)**2,0)/s.length;
+ state.zero=mean;state.frozen=false;$('freeze').textContent='Fixar leitura';
+ $('calibrationInfo').textContent='Zero calibrado: '+mean.toFixed(2)+'°. Calibração válida apenas para esta posição/câmara e enquanto os sensores se mantiverem consistentes.';
+ if(Math.sqrt(variance)>0.15)toast('Zero guardado, mas o telemóvel estava instável. Repete a calibração.')
+ else toast('Zero calibrado. Agora podes mudar para o ponto a medir.');updateReadout();});
+$('freeze').addEventListener('click',()=>{state.frozen=!state.frozen;$('freeze').textContent=state.frozen?'Retomar leitura':'Fixar leitura';toast(state.frozen?'Leitura fixada':'Leitura em direto')});
+let lastResult=null;
+function updateReadout(){let d=Number($('distance').value.replace?$('distance').value.replace(',','.'):$('distance').value);
+ if(!(d>0&&d<300))d=NaN;$('measureDistance').textContent=Number.isFinite(d)?d.toFixed(1)+' m':'—';
+ if(state.frozen)return;if(state.theta===null||state.zero===null||!Number.isFinite(d)){
+  setMetric('measure',null,false);$('measureAngle').textContent='—';$('measureNoise').textContent='—';return;
+ }
+ const angle=state.theta-state.zero;const heightCm=-100*d*Math.tan(angle*DEG);
+ const sample=state.samples;const mean=sample.reduce((a,b)=>a+b,0)/sample.length;
+ const sigma=Math.sqrt(sample.reduce((a,b)=>a+(b-mean)**2,0)/sample.length);
+ const noiseCm=100*d*Math.tan(sigma*DEG);
+ setMetric('measure',heightCm,true);$('measureAngle').textContent=angle.toFixed(2)+'°';$('measureNoise').textContent=noiseCm.toFixed(1)+' cm';
+ lastResult={type:'reading',deltaCm:heightCm,angle,distance:d,calibrated:true};const now=Date.now();if(now-state.lastSend>320){send(lastResult);state.lastSend=now}
+}
+function sendHeartbeat(){if(state.role==='measure'&&state.conn&&state.conn.open){if(lastResult)send(lastResult);else send({type:'reading',calibrated:false})}}
+setInterval(sendHeartbeat,3000);
+window.addEventListener('pagehide',()=>{if(state.stream)state.stream.getTracks().forEach(t=>t.stop());if(state.peer)state.peer.destroy()});
+if(new URLSearchParams(location.search).has('s'))initPeer('measure');
+</script>
+</body>
+</html>
